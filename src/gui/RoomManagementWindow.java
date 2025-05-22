@@ -18,8 +18,13 @@ public class RoomManagementWindow extends JFrame {
 
         // Add columns: Room No, Type, Bed Type, Price, Status, Guest Name, Contact, Days Left
         model = new DefaultTableModel(new String[]{
-                "Room No", "Type", "Bed Type", "Price", "Status", "Guest Name", "Contact", "Days Left"
-        }, 0);
+                "Room No", "Type", "Bed Type", "Price", "Status", "Guest Name", "Contact", "Staying Days"
+        }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 7;
+            }
+        };
 
         table = new JTable(model);
         loadRoomData();
