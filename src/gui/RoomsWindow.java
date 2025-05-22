@@ -10,24 +10,28 @@ public class RoomsWindow extends JFrame {
     public RoomsWindow() {
         setTitle("Rooms Management");
         setSize(800, 400);
-        setLayout(new GridLayout(5, 5));
+        setLayout(new BorderLayout());
+
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
 
         try (Connection con = DBConnection.getConnection();
              Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM rooms")) {
 
             while (rs.next()) {
-                JButton btn = new JButton(rs.getString("room_number"));
-                btn.setToolTipText("Status: " + rs.getString("status") +
+                area.append("Room: " + rs.getString("room_number") +
                         ", Type: " + rs.getString("type") +
-                        ", Price: $" + rs.getDouble("price"));
-                add(btn);
+                        ", Bed: " + rs.getString("bed") +
+                        ", Status: " + rs.getString("status") +
+                        ", Price: ₹" + rs.getDouble("price") + "\n");
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        add(new JScrollPane(area), BorderLayout.CENTER);
         setVisible(true);
     }
 }
