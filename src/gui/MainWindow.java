@@ -44,6 +44,17 @@ public class MainWindow extends JFrame {
 
         add(panel, BorderLayout.CENTER);
         setVisible(true);
+
+        JButton roomStatus = new JButton("Room Status");
+        roomStatus.addActionListener(e -> new RoomStatusWindow());
+        panel.add(roomStatus);
+
+        JButton cashDesk = new JButton("Cash Desk");
+        cashDesk.addActionListener(e -> new CashDeskWindow());
+        panel.add(cashDesk);
+
+
+
     }
 
     public static void main(String[] args) {
