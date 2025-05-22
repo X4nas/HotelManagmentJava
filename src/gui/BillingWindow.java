@@ -86,7 +86,7 @@ public class BillingWindow extends JFrame {
             clearFields();
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error saving billing info.");
+            JOptionPane.showMessageDialog(this, "Error saving billing information");
         }
     }
 
