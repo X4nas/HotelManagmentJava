@@ -42,9 +42,9 @@ public class MainWindow extends JFrame {
         roomStatus.addActionListener(e -> new RoomStatusWindow());
         panel.add(roomStatus);
 
-        JButton cashDesk = new JButton("Cash Desk");
-        cashDesk.addActionListener(e -> new BillingWindow());
-        panel.add(cashDesk);
+        JButton billing = new JButton("Billing");
+        billing.addActionListener(e -> new BillingWindow());
+        panel.add(billing);
 
         JButton manageRooms = new JButton("Manage Rooms");
         manageRooms.addActionListener(e -> new RoomManagementWindow());
