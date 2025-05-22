@@ -20,7 +20,7 @@ public class MainWindow extends JFrame {
         setJMenuBar(menuBar);
 
         // Status bar
-        JLabel statusBar = new JLabel("Logged in: admin | Weather: Sunny | $: 82.3 | €: 89.1");
+        JLabel statusBar = new JLabel("Logged in: admin | Hotel Management System");
         statusBar.setBorder(BorderFactory.createEtchedBorder());
         add(statusBar, BorderLayout.SOUTH);
 
@@ -38,13 +38,9 @@ public class MainWindow extends JFrame {
         reservations.addActionListener(e -> new ReservationWindow());
         panel.add(reservations);
 
-        JButton roomStatus = new JButton("Room Status");
-        roomStatus.addActionListener(e -> new RoomStatusWindow());
-        panel.add(roomStatus);
-
-        JButton cashDesk = new JButton("Cash Desk");
-        cashDesk.addActionListener(e -> new CashDeskWindow());
-        panel.add(cashDesk);
+        JButton bill = new JButton("Bill Calculator");
+        bill.addActionListener(e -> new BillCalculatorWindow());
+        panel.add(bill);
 
         add(panel, BorderLayout.CENTER);
         setVisible(true);
