@@ -53,6 +53,13 @@ public class MainWindow extends JFrame {
         cashDesk.addActionListener(e -> new CashDeskWindow());
         panel.add(cashDesk);
 
+        JButton manageRooms = new JButton("Manage Rooms");
+        manageRooms.addActionListener(e -> new RoomManagementWindow());
+        panel.add(manageRooms);
+
+        JButton billing = new JButton("Billing");
+        billing.addActionListener(e -> new BillingWindow());
+        panel.add(billing);
 
 
     }
