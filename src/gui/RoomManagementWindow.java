@@ -88,14 +88,29 @@ public class RoomManagementWindow extends JFrame {
         if (row == -1) return;
 
         String roomNo = (String) model.getValueAt(row, 0);
+
         String newType = JOptionPane.showInputDialog("Enter new type:", model.getValueAt(row, 1));
-        String newBed = JOptionPane.showInputDialog("Enter new bed type (single/double/deluxe):", model.getValueAt(row, 2));
-        double newPrice = Double.parseDouble(JOptionPane.showInputDialog("Enter new price:", model.getValueAt(row, 3)));
+        if (newType == null) return;  // user canceled
+
+        String newBed = JOptionPane.showInputDialog("Enter new bed (single/double):", model.getValueAt(row, 2));
+        if (newBed == null) return;
+
+        String priceInput = JOptionPane.showInputDialog("Enter new price:", model.getValueAt(row, 3));
+        if (priceInput == null) return;
+
+        double newPrice;
+        try {
+            newPrice = Double.parseDouble(priceInput.trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid price entered.");
+            return;
+        }
+
         String newStatus = JOptionPane.showInputDialog("Enter new status (booked/available):", model.getValueAt(row, 4));
+        if (newStatus == null) return;
 
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement pst = con.prepareStatement(
-                     "UPDATE rooms SET type=?, bed_type=?, price=?, status=? WHERE room_number=?")) {
+             PreparedStatement pst = con.prepareStatement("UPDATE rooms SET type=?, bed=?, price=?, status=? WHERE room_number=?")) {
 
             pst.setString(1, newType);
             pst.setString(2, newBed);
@@ -109,6 +124,7 @@ public class RoomManagementWindow extends JFrame {
             e.printStackTrace();
         }
     }
+
 
     private void deleteRoom() {
         int row = table.getSelectedRow();
