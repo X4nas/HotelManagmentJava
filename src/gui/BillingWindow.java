@@ -1,43 +1,73 @@
 package gui;
 
+import db.DBConnection;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 
 public class BillingWindow extends JFrame {
+    private JTextField nameField, idField, phoneField, daysField;
+    private JLabel totalLabel;
+
     public BillingWindow() {
-        setTitle("Billing Calculator");
+        setTitle("Billing");
         setSize(400, 300);
-        setLayout(new GridLayout(7, 2));
+        setLayout(new GridLayout(6, 2));
 
-        JTextField nameField = new JTextField();
-        JTextField idField = new JTextField();
-        JTextField phoneField = new JTextField();
-        JTextField daysField = new JTextField();
-        JTextField pricePerDayField = new JTextField();
-        JTextField totalAmountField = new JTextField();
-        totalAmountField.setEditable(false);
+        add(new JLabel("Customer Name:"));
+        nameField = new JTextField();
+        add(nameField);
 
-        JButton calculateBtn = new JButton("Calculate");
-        calculateBtn.addActionListener(e -> {
-            try {
-                int days = Integer.parseInt(daysField.getText());
-                double pricePerDay = Double.parseDouble(pricePerDayField.getText());
-                double total = days * pricePerDay;
-                totalAmountField.setText(String.valueOf(total));
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter valid numbers.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        add(new JLabel("Customer ID:"));
+        idField = new JTextField();
+        add(idField);
 
-        add(new JLabel("Customer Name:")); add(nameField);
-        add(new JLabel("Customer ID:")); add(idField);
-        add(new JLabel("Phone Number:")); add(phoneField);
-        add(new JLabel("Days Stay:")); add(daysField);
-        add(new JLabel("Price/Day:")); add(pricePerDayField);
-        add(new JLabel("Total Amount:")); add(totalAmountField);
-        add(new JLabel("")); add(calculateBtn);
+        add(new JLabel("Phone Number:"));
+        phoneField = new JTextField();
+        add(phoneField);
 
+        add(new JLabel("Days Stayed:"));
+        daysField = new JTextField();
+        add(daysField);
+
+        JButton calculateBtn = new JButton("Calculate & Save");
+        add(calculateBtn);
+        totalLabel = new JLabel("Total: ₹0.00");
+        add(totalLabel);
+
+        calculateBtn.addActionListener(e -> saveBilling());
+
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
+    }
+
+    private void saveBilling() {
+        String name = nameField.getText();
+        String id = idField.getText();
+        String phone = phoneField.getText();
+        int days = Integer.parseInt(daysField.getText());
+        double ratePerDay = 1000.0; // default rate
+        double total = days * ratePerDay;
+        totalLabel.setText("Total: ₹" + total);
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement pst = con.prepareStatement(
+                     "INSERT INTO billing (customer_name, customer_id, phone, days, total_amount) VALUES (?, ?, ?, ?, ?)")) {
+
+            pst.setString(1, name);
+            pst.setString(2, id);
+            pst.setString(3, phone);
+            pst.setInt(4, days);
+            pst.setDouble(5, total);
+            pst.executeUpdate();
+
+            JOptionPane.showMessageDialog(this, "Billing info saved successfully.");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error saving billing info.");
+        }
     }
 }
