@@ -57,11 +57,6 @@ public class MainWindow extends JFrame {
         manageRooms.addActionListener(e -> new RoomManagementWindow());
         panel.add(manageRooms);
 
-        JButton billing = new JButton("Billing");
-        billing.addActionListener(e -> new BillingWindow());
-        panel.add(billing);
-
-
     }
 
     public static void main(String[] args) {
