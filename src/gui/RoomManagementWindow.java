@@ -43,6 +43,7 @@ public class RoomManagementWindow extends JFrame {
         btnPanel.add(deleteBtn);
         add(btnPanel, BorderLayout.SOUTH);
 
+
         setVisible(true);
     }
 
@@ -197,6 +198,88 @@ public class RoomManagementWindow extends JFrame {
         }
     }
 
+    private void addRoom() {
+        String roomNo = JOptionPane.showInputDialog("Enter room number:");
+        if (roomNo == null || roomNo.trim().isEmpty()) return;
+
+        String type = JOptionPane.showInputDialog("Enter room type:");
+        if (type == null) return;
+
+        String bed;
+        while (true) {
+            bed = JOptionPane.showInputDialog("Enter bed type (single/double):");
+            if (bed == null) return;
+            bed = bed.trim().toLowerCase();
+            if (bed.equals("single") || bed.equals("double")) break;
+            JOptionPane.showMessageDialog(this, "Invalid bed type! Only 'single' or 'double' allowed.");
+        }
+
+        String priceInput = JOptionPane.showInputDialog("Enter price:");
+        if (priceInput == null) return;
+
+        double price;
+        try {
+            price = Double.parseDouble(priceInput.trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid price entered.");
+            return;
+        }
+
+        String status = JOptionPane.showInputDialog("Enter status (booked/available):");
+        if (status == null) return;
+
+        String guestName = "";
+        String contact = "";
+        if ("booked".equalsIgnoreCase(status.trim())) {
+            guestName = JOptionPane.showInputDialog("Enter guest name:");
+            if (guestName == null) return;
+
+            contact = JOptionPane.showInputDialog("Enter guest contact:");
+            if (contact == null) return;
+        }
+
+        String stayingDaysInput = JOptionPane.showInputDialog("Enter staying days:");
+        if (stayingDaysInput == null) return;
+
+        int stayingDays;
+        try {
+            stayingDays = Integer.parseInt(stayingDaysInput.trim());
+            if (stayingDays < 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid staying days entered.");
+            return;
+        }
+
+        try (Connection con = DBConnection.getConnection()) {
+            // Insert room
+            try (PreparedStatement pstRoom = con.prepareStatement(
+                    "INSERT INTO rooms (room_number, type, bed, price, status, staying_days) VALUES (?, ?, ?, ?, ?, ?)")) {
+                pstRoom.setString(1, roomNo);
+                pstRoom.setString(2, type);
+                pstRoom.setString(3, bed);
+                pstRoom.setDouble(4, price);
+                pstRoom.setString(5, status);
+                pstRoom.setInt(6, stayingDays);
+                pstRoom.executeUpdate();
+            }
+
+            if ("booked".equalsIgnoreCase(status.trim())) {
+                // Insert guest
+                try (PreparedStatement pstGuest = con.prepareStatement(
+                        "INSERT INTO guests (name, contact, room_number) VALUES (?, ?, ?)")) {
+                    pstGuest.setString(1, guestName);
+                    pstGuest.setString(2, contact);
+                    pstGuest.setString(3, roomNo);
+                    pstGuest.executeUpdate();
+                }
+            }
+
+            loadRoomData();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error inserting new room: " + e.getMessage());
+        }
+    }
 
 
     private void deleteRoom() {

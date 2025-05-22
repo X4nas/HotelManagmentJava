@@ -50,6 +50,11 @@ public class MainWindow extends JFrame {
         manageRooms.addActionListener(e -> new RoomManagementWindow());
         panel.add(manageRooms);
 
+        JButton addButton = new JButton("Add Room");
+        addButton.addActionListener(e -> addRoom());
+        panel.add(addButton);  // add to your UI panel
+
+
         add(panel, BorderLayout.CENTER);
         setVisible(true);
     }
