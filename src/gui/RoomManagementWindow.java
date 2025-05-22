@@ -5,7 +5,6 @@ import db.DBConnection;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
 import java.sql.*;
 
 public class RoomManagementWindow extends JFrame {
@@ -14,10 +13,14 @@ public class RoomManagementWindow extends JFrame {
 
     public RoomManagementWindow() {
         setTitle("Manage Rooms");
-        setSize(800, 400);
+        setSize(900, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        model = new DefaultTableModel(new String[]{"Room No", "Type", "Bed", "Price", "Status"}, 0);
+        // Add columns: Room No, Type, Bed Type, Price, Status, Guest Name, Contact, Days Left
+        model = new DefaultTableModel(new String[]{
+                "Room No", "Type", "Bed Type", "Price", "Status", "Guest Name", "Contact", "Days Left"
+        }, 0);
+
         table = new JTable(model);
         loadRoomData();
 
@@ -40,16 +43,38 @@ public class RoomManagementWindow extends JFrame {
 
     private void loadRoomData() {
         model.setRowCount(0);
+        String sql = "SELECT r.room_number, r.type, r.bed_type, r.price, r.status, " +
+                "g.name, g.contact, r.booking_end_date, " +
+                "DATEDIFF(r.booking_end_date, CURDATE()) AS days_left " +
+                "FROM rooms r LEFT JOIN guests g ON r.room_number = g.room_number";
+
         try (Connection con = DBConnection.getConnection();
              Statement stmt = con.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM rooms")) {
+             ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
+                String status = rs.getString("status");
+                String name = rs.getString("name");
+                String contact = rs.getString("contact");
+                int daysLeft = rs.getInt("days_left");
+
+                if (!"booked".equalsIgnoreCase(status)) {
+                    name = "";
+                    contact = "";
+                    daysLeft = 0;
+                } else if (daysLeft < 0) {
+                    daysLeft = 0; // no negative days
+                }
+
                 model.addRow(new Object[]{
                         rs.getString("room_number"),
                         rs.getString("type"),
-                        rs.getString("bed"),
+                        rs.getString("bed_type"),
                         rs.getDouble("price"),
-                        rs.getString("status")
+                        status,
+                        name,
+                        contact,
+                        daysLeft
                 });
             }
         } catch (SQLException e) {
@@ -57,18 +82,20 @@ public class RoomManagementWindow extends JFrame {
         }
     }
 
+
     private void editRoom() {
         int row = table.getSelectedRow();
         if (row == -1) return;
 
         String roomNo = (String) model.getValueAt(row, 0);
         String newType = JOptionPane.showInputDialog("Enter new type:", model.getValueAt(row, 1));
-        String newBed = JOptionPane.showInputDialog("Enter new bed (single/double):", model.getValueAt(row, 2));
+        String newBed = JOptionPane.showInputDialog("Enter new bed type (single/double/deluxe):", model.getValueAt(row, 2));
         double newPrice = Double.parseDouble(JOptionPane.showInputDialog("Enter new price:", model.getValueAt(row, 3)));
-        String newStatus = JOptionPane.showInputDialog("Enter new status (booked/unbooked):", model.getValueAt(row, 4));
+        String newStatus = JOptionPane.showInputDialog("Enter new status (booked/available):", model.getValueAt(row, 4));
 
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement pst = con.prepareStatement("UPDATE rooms SET type=?, bed=?, price=?, status=? WHERE room_number=?")) {
+             PreparedStatement pst = con.prepareStatement(
+                     "UPDATE rooms SET type=?, bed_type=?, price=?, status=? WHERE room_number=?")) {
 
             pst.setString(1, newType);
             pst.setString(2, newBed);
