@@ -89,20 +89,17 @@ public class RoomManagementWindow extends JFrame {
 
         String roomNo = (String) model.getValueAt(row, 0);
 
+        // Edit room details
         String newType = JOptionPane.showInputDialog("Enter new type:", model.getValueAt(row, 1));
-        if (newType == null) return;  // user canceled
+        if (newType == null) return;
 
         String newBed;
         while (true) {
             newBed = JOptionPane.showInputDialog("Enter new bed (single/double):", model.getValueAt(row, 2));
-            if (newBed == null) return; // user canceled
-
+            if (newBed == null) return;
             newBed = newBed.trim().toLowerCase();
-            if (newBed.equals("single") || newBed.equals("double")) {
-                break; // valid input, exit loop
-            } else {
-                JOptionPane.showMessageDialog(this, "Invalid bed type! Only 'single' or 'double' are allowed.");
-            }
+            if (newBed.equals("single") || newBed.equals("double")) break;
+            JOptionPane.showMessageDialog(this, "Invalid bed type! Only 'single' or 'double' allowed.");
         }
 
         String priceInput = JOptionPane.showInputDialog("Enter new price:", model.getValueAt(row, 3));
@@ -119,21 +116,69 @@ public class RoomManagementWindow extends JFrame {
         String newStatus = JOptionPane.showInputDialog("Enter new status (booked/available):", model.getValueAt(row, 4));
         if (newStatus == null) return;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement pst = con.prepareStatement("UPDATE rooms SET type=?, bed=?, price=?, status=? WHERE room_number=?")) {
+        // Edit guest details
+        String currentGuestName = (String) model.getValueAt(row, 5);
+        String currentContact = (String) model.getValueAt(row, 6);
 
-            pst.setString(1, newType);
-            pst.setString(2, newBed);
-            pst.setDouble(3, newPrice);
-            pst.setString(4, newStatus);
-            pst.setString(5, roomNo);
-            pst.executeUpdate();
+        String newGuestName = JOptionPane.showInputDialog("Enter guest name:", currentGuestName);
+        if (newGuestName == null) return;
+
+        String newContact = JOptionPane.showInputDialog("Enter guest contact:", currentContact);
+        if (newContact == null) return;
+
+        try (Connection con = DBConnection.getConnection()) {
+            // Update room
+            try (PreparedStatement pstRoom = con.prepareStatement(
+                    "UPDATE rooms SET type=?, bed=?, price=?, status=? WHERE room_number=?")) {
+
+                pstRoom.setString(1, newType);
+                pstRoom.setString(2, newBed);
+                pstRoom.setDouble(3, newPrice);
+                pstRoom.setString(4, newStatus);
+                pstRoom.setString(5, roomNo);
+                pstRoom.executeUpdate();
+            }
+
+            // Update guest
+            // Only update if status is booked and guest info is provided
+            if ("booked".equalsIgnoreCase(newStatus.trim())) {
+                // Check if guest record exists for the room
+                try (PreparedStatement pstCheckGuest = con.prepareStatement(
+                        "SELECT id FROM guests WHERE room_number = ?")) {
+                    pstCheckGuest.setString(1, roomNo);
+                    try (ResultSet rs = pstCheckGuest.executeQuery()) {
+                        if (rs.next()) {
+                            // Update guest info
+                            try (PreparedStatement pstGuestUpdate = con.prepareStatement(
+                                    "UPDATE guests SET name=?, contact=? WHERE room_number=?")) {
+                                pstGuestUpdate.setString(1, newGuestName);
+                                pstGuestUpdate.setString(2, newContact);
+                                pstGuestUpdate.setString(3, roomNo);
+                                pstGuestUpdate.executeUpdate();
+                            }
+                        } else {
+                            // Insert new guest record if none exists
+                            try (PreparedStatement pstGuestInsert = con.prepareStatement(
+                                    "INSERT INTO guests (name, contact, room_number) VALUES (?, ?, ?)")) {
+                                pstGuestInsert.setString(1, newGuestName);
+                                pstGuestInsert.setString(2, newContact);
+                                pstGuestInsert.setString(3, roomNo);
+                                pstGuestInsert.executeUpdate();
+                            }
+                        }
+                    }
+                }
+            } else {
+                // If status is not booked, optionally you may want to remove guest info or leave as is.
+            }
 
             loadRoomData();
         } catch (SQLException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage());
         }
     }
+
 
 
     private void deleteRoom() {
