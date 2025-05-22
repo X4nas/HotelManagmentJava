@@ -92,8 +92,18 @@ public class RoomManagementWindow extends JFrame {
         String newType = JOptionPane.showInputDialog("Enter new type:", model.getValueAt(row, 1));
         if (newType == null) return;  // user canceled
 
-        String newBed = JOptionPane.showInputDialog("Enter new bed (single/double):", model.getValueAt(row, 2));
-        if (newBed == null) return;
+        String newBed;
+        while (true) {
+            newBed = JOptionPane.showInputDialog("Enter new bed (single/double):", model.getValueAt(row, 2));
+            if (newBed == null) return; // user canceled
+
+            newBed = newBed.trim().toLowerCase();
+            if (newBed.equals("single") || newBed.equals("double")) {
+                break; // valid input, exit loop
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid bed type! Only 'single' or 'double' are allowed.");
+            }
+        }
 
         String priceInput = JOptionPane.showInputDialog("Enter new price:", model.getValueAt(row, 3));
         if (priceInput == null) return;
