@@ -121,6 +121,19 @@ public class RoomManagementWindow extends JFrame {
         String newStatus = JOptionPane.showInputDialog("Enter new status (booked/available):", model.getValueAt(row, 4));
         if (newStatus == null) return;
 
+        String stayingDaysInput = JOptionPane.showInputDialog("Enter staying days:", model.getValueAt(row, 7));
+        if (stayingDaysInput == null) return;
+
+        int stayingDays;
+        try {
+            stayingDays = Integer.parseInt(stayingDaysInput.trim());
+            if (stayingDays < 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid staying days entered.");
+            return;
+        }
+
+
         // Edit guest details
         String currentGuestName = (String) model.getValueAt(row, 5);
         String currentContact = (String) model.getValueAt(row, 6);
